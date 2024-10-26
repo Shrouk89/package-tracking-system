@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"user_registration_backend/controllers" // ADDED
 	"user_registration_backend/db" // ADDED
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+        "user_registration_backend/controllers" //use gin instead of mux
 )
 
 // Commented: I think we can just use the already implemented function from the controllers package.
@@ -25,15 +26,15 @@ func main() {
 	db.InitDB()  // Ensures database connection is established
 	
 	// Initialize a new router
-	router := mux.NewRouter()
+    router := gin.Default()
 
-	// Define the POST /register route
-	router.HandleFunc("/register", controllers.RegisterUser).Methods("POST") // Modified to use the function on controllers package
+    // Define the POST /register route
+    router.POST("/register", controllers.RegisterUser)
 
-	// Define the POST /login route - ADDED: New route for login functionality
-	router.HandleFunc("/login", controllers.LoginUser).Methods("POST")
+    // Define the POST /login route
+    router.POST("/login", controllers.LoginUser)
 
-	// Start the server on port 8080
-	fmt.Println("Server is running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+    // Start the server on port 8080
+    fmt.Println("Server is running at http://localhost:8080")
+    router.Run(":8080")
 }
