@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
+	//"log"
+	//"net/http"
 	"user_registration_backend/controllers" // ADDED
 	"user_registration_backend/db" // ADDED
 	"github.com/gin-gonic/gin"
-        "user_registration_backend/controllers" //use gin instead of mux
+ 	"github.com/gin-contrib/cors"
+        //"user_registration_backend/controllers" //use gin instead of mux
 )
 
 // Commented: I think we can just use the already implemented function from the controllers package.
@@ -25,8 +26,12 @@ func main() {
 	// Initialize database connection - ADDED
 	db.InitDB()  // Ensures database connection is established
 	
+
 	// Initialize a new router
     router := gin.Default()
+
+    // Use CORS middleware
+    router.Use(cors.Default())
 
     // Define the POST /register route
     router.POST("/register", controllers.RegisterUser)
