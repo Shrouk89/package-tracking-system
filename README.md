@@ -26,3 +26,23 @@ This project implements basic user registration and login functionalities using 
    ```bash
    git clone https://github.com/yourusername/user_registration_backend.git
    cd user_registration_backend
+   
+2. **Install Go dependencies**:
+
+   ```bash
+   go mod tidy
+
+3. **Database Setup**:
+
+   ```go
+   connStr := "user=postgres password=123 dbname=User_db sslmode=disable"
+
+4. **Run the application**:
+
+   ```bash
+   go run main.go
+The backend server will start on http://localhost:8080.
+
+**API Endpoints (Phase 0)**:
+POST /register - Registers a new user.
+POST /login - Logs in an existing user.
