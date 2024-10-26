@@ -30,8 +30,17 @@ func main() {
 	// Initialize a new router
     router := gin.Default()
 
-    // Use CORS middleware
-    router.Use(cors.Default())
+    // Enable CORS to allow our Angular frontend to communicate with this Go backend
+    router.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*") // Allow all origins
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+    })
 
     // Define the POST /register route
     router.POST("/register", controllers.RegisterUser)
