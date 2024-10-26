@@ -39,7 +39,7 @@ func RegisterUser(c *gin.Context) {
               VALUES ($1, $2, $3, $4) RETURNING id`
 
 	var userID int64
-	err := db.DB.QueryRow(query, user.Name, user.Email, user.Phone, user.Password).Scan(&userID)
+	err = db.DB.QueryRow(query, user.Name, user.Email, user.Phone, user.Password).Scan(&userID)
 
 	if err != nil {
 		log.Println("Error inserting user into database:", err)
