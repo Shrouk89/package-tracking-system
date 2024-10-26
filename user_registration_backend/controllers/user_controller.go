@@ -22,7 +22,9 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Received user registration data: %+v\n", user)
+	// Log the user details without the password
+	log.Printf("Received user registration data: %+v\n", userLog{Name: user.Name, Email: user.Email, Phone: user.Phone})
+
 
 	// Hash the password before storing it
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost) // ADDED: Hash password before storing
