@@ -7,7 +7,8 @@ import (
 	"user_registration_backend/models"
 
 	"github.com/gin-gonic/gin"
-        "golang.org/x/crypto/bcrypt"  // ADDED: Import bcrypt for password hashing
+    "golang.org/x/crypto/bcrypt"  // ADDED: Import bcrypt for password hashing
+	
 
 )
 

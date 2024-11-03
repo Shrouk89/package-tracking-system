@@ -12,7 +12,7 @@ var DB *sqlx.DB
 
 // InitDB initializes the database connection
 func InitDB() {
-	connStr := "user=postgres password=123 dbname=User_db sslmode=disable"
+	connStr := "user=postgres password=123 dbname=PackageTracking_db sslmode=disable"
 	var err error
 	DB, err = sqlx.Connect("postgres", connStr)
 	if err != nil {
