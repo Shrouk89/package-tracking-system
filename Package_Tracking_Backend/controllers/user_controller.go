@@ -1,15 +1,13 @@
 package controllers
 
 import (
+	"Package_Tracking_Backend/db"
+	"Package_Tracking_Backend/models"
 	"log"
 	"net/http"
-	"user_registration_backend/db"
-	"user_registration_backend/models"
 
 	"github.com/gin-gonic/gin"
-    "golang.org/x/crypto/bcrypt"  // ADDED: Import bcrypt for password hashing
-	
-
+	"golang.org/x/crypto/bcrypt" // ADDED: Import bcrypt for password hashing
 )
 
 // RegisterUser handles user registration
@@ -26,7 +24,6 @@ func RegisterUser(c *gin.Context) {
 	// Log the user details without the password
 	log.Printf("Received user registration data: %+v\n", userLog{Name: user.Name, Email: user.Email, Phone: user.Phone})
 
-
 	// Hash the password before storing it
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost) // ADDED: Hash password before storing
 	if err != nil {
@@ -34,8 +31,7 @@ func RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
-	user.Password = string(hashedPassword)  // ADDED: Store hashed password
-
+	user.Password = string(hashedPassword) // ADDED: Store hashed password
 
 	// Insert user into the database
 	query := `INSERT INTO users (name, email, phone, password) 
