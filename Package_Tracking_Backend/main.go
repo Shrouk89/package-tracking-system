@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+
 	//"log"
 	//"net/http"
 	"Package_Tracking_Backend/controllers" // ADDED
@@ -56,6 +57,8 @@ func main() {
 
 	// Define the GET /order-details by ID endpoint
 	router.GET("/order-details/:id", controllers.GetOrderDetails)
+
+	router.PUT("/cancel-order/:id", controllers.CancelOrder)
 
 	// Start the server on port 8080
 	fmt.Println("Server is running at http://localhost:8080")
