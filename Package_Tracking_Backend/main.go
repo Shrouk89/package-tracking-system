@@ -53,6 +53,9 @@ func main() {
 
     // Define the GET /my-orders endpoint
     router.GET("/my-orders", controllers.GetOrdersByUser)
+	
+    // Define the GET /order-details by ID endpoint 
+    router.GET("/order-details/:id", controllers.GetOrderDetails)
 
 
     // Start the server on port 8080
