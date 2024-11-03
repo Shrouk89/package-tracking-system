@@ -35,7 +35,7 @@ This project implements basic user registration and login functionalities using 
 3. **Database Setup**:
 
    ```go
-   connStr := "user=postgres password=123 dbname=User_db sslmode=disable"
+   connStr := "user=postgres password=123 dbname=PackageTracking_db sslmode=disable"
 
 4. **Run the application**:
 
