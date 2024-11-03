@@ -59,3 +59,22 @@ func GetOrdersByUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, orders)
 }
+
+// GetOrderDetails handles retrieving details of a specific order by ID
+func GetOrderDetails(c *gin.Context) {
+	orderID := c.Param("id") // Get order ID
+
+	var order models.Order
+	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
+              FROM orders WHERE id = $1`
+	err := db.DB.Get(&order, query, orderID)
+
+	if err != nil {
+		log.Println("Error fetching order details:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch order details"})
+		return
+	}
+
+	c.JSON(http.StatusOK, order)
+}
+
