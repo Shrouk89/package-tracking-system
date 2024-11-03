@@ -36,7 +36,6 @@ func CreateOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Order created successfully", "order_id": orderID})
 }
 
-
 // GetOrdersByUser handles retrieving all orders for a user
 func GetOrdersByUser(c *gin.Context) {
 	userID := c.Query("user_id") // Get user ID from query parameters
@@ -78,3 +77,33 @@ func GetOrderDetails(c *gin.Context) {
 	c.JSON(http.StatusOK, order)
 }
 
+// Handles order cancellation
+func CancelOrder(c *gin.Context) {
+	orderID := c.Param("id")
+
+	// Check if the order is pending
+	var status string
+	queryCheck := `SELECT status FROM orders WHERE id = $1`
+	err := db.DB.Get(&status, queryCheck, orderID)
+	if err != nil {
+		log.Println("Error checking order status:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check order status"})
+		return
+	}
+
+	if status != "pending" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only pending orders can be cancelled"})
+		return
+	}
+
+	// Update order status to cancelled
+	queryUpdate := `UPDATE orders SET status = 'cancelled' WHERE id = $1`
+	_, err = db.DB.Exec(queryUpdate, orderID)
+	if err != nil {
+		log.Println("Error updating order status:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel order"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Order cancelled successfully"})
+}
