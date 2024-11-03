@@ -10,6 +10,7 @@ import (
 
 var DB *sqlx.DB
 
+// The name of the db is changed to include the whole data not only the users
 // InitDB initializes the database connection
 func InitDB() {
 	connStr := "user=postgres password=123 dbname=PackageTracking_db sslmode=disable"
