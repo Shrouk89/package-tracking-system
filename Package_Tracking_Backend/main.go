@@ -42,11 +42,14 @@ func main() {
 		c.Next()
     })
 
-    // Define the POST /register route
+    // Define the POST /register endpoint
     router.POST("/register", controllers.RegisterUser)
 
-    // Define the POST /login route
+    // Define the POST /login endpoint
     router.POST("/login", controllers.LoginUser)
+
+    // Define the POST /create-order endpoint
+    router.POST("/create-order", controllers.CreateOrder)
 
     // Start the server on port 8080
     fmt.Println("Server is running at http://localhost:8080")
