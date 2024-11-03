@@ -24,8 +24,8 @@ This project implements basic user registration and login functionalities using 
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/user_registration_backend.git
-   cd user_registration_backend
+   git clone https://github.com/yourusername/Package_Tracking_Backend.git
+   cd Package_Tracking_Backend
    
 2. **Install Go dependencies**:
 
