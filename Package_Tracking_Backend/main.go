@@ -51,6 +51,10 @@ func main() {
     // Define the POST /create-order endpoint
     router.POST("/create-order", controllers.CreateOrder)
 
+    // Define the GET /my-orders endpoint
+    router.GET("/my-orders", controllers.GetOrdersByUser)
+
+
     // Start the server on port 8080
     fmt.Println("Server is running at http://localhost:8080")
     router.Run(":8080")
