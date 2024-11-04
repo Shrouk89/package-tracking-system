@@ -59,6 +59,18 @@ func main() {
 	router.GET("/order-details/:id", controllers.GetOrderDetails)
 
 	router.PUT("/cancel-order/:id", controllers.CancelOrder)
+	// Register the courier routes
+	router.POST("/couriers", controllers.AddCourier)
+	router.GET("/couriers", controllers.GetAllCouriers)
+	router.GET("/assigned-orders", controllers.GetAssignedOrdersByCourier)
+	router.PUT("/orders/update-status/:id", controllers.UpdateOrderStatus)
+	router.POST("/admin/register", controllers.RegisterAdmin)
+
+	// Define the POST /login endpoint
+	router.POST("/admin/login", controllers.LoginAdmin)
+	router.GET("/orders", controllers.GetAllOrders)
+	router.PUT("/orders/:id", controllers.UpdateOrder)
+	router.DELETE("/orders/:id", controllers.DeleteOrder)
 
 	// Start the server on port 8080
 	fmt.Println("Server is running at http://localhost:8080")
