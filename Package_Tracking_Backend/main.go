@@ -8,6 +8,7 @@ import (
 	//"net/http"
 	"Package_Tracking_Backend/controllers" // ADDED
 	"Package_Tracking_Backend/db"          // ADDED
+	"Package_Tracking_Backend/middleware"
 
 	"github.com/gin-gonic/gin"
 	//"Package_Tracking_Backend/controllers" //use gin instead of mux
@@ -49,8 +50,13 @@ func main() {
 	// Define the POST /login endpoint
 	router.POST("/login", controllers.LoginUser)
 
-	// Define the POST /create-order endpoint
-	router.POST("/create-order", controllers.CreateOrder)
+	// Protected routes
+	protected := router.Group("/")
+	protected.Use(middleware.AuthMiddleware()) // Apply AuthMiddleware to all routes in this group
+	protected.POST("/create-order", controllers.CreateOrder)
+
+	// // Define the POST /create-order endpoint
+	// router.POST("/create-order", controllers.CreateOrder)
 
 	// Define the GET /my-orders endpoint
 	router.GET("/my-orders", controllers.GetOrdersByUser)

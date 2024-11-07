@@ -13,12 +13,23 @@ import (
 func CreateOrder(c *gin.Context) {
 	var order models.Order
 
+	// Retrieve user_id from the context (assuming it's set by an authentication middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		log.Println("User ID not found in context")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
 	// Bind JSON request to the order model
 	if err := c.ShouldBindJSON(&order); err != nil {
 		log.Println("Error binding JSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
+
+	// Assign the retrieved userID to the order
+	order.UserID = userID.(int64)
 
 	// Insert order into the database
 	query := `INSERT INTO orders (user_id, pickup_location, dropoff_location, package_details, delivery_time, status)

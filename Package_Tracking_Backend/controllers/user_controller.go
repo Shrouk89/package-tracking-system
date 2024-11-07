@@ -6,7 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt" // ADDED: Import bcrypt for password hashing
 )
 
@@ -50,6 +53,8 @@ func RegisterUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully", "user_id": userID})
 }
 
+var jwtSecretKey = []byte("UzN4041qFo+9TKhXaNeAqP/DJ8btfIGIT1rWsO6CyC8=") // Replace with a secure key
+
 // LoginUser handles user login - ADDED: New function for handling user login
 func LoginUser(c *gin.Context) {
 	var loginData struct {
@@ -84,4 +89,17 @@ func LoginUser(c *gin.Context) {
 
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user_id": user.ID, "name": user.Name})
+
+	// Generate a JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(), // 1-day expiration
+	})
+	tokenString, err := token.SignedString(jwtSecretKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": tokenString, "user_id": user.ID})
 }
