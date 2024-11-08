@@ -56,7 +56,7 @@ func main() {
 	protected.POST("/create-order", controllers.CreateOrder)
 
 	// // Define the POST /create-order endpoint
-	// router.POST("/create-order", controllers.CreateOrder)
+	router.POST("/create-order", controllers.CreateOrder)
 
 	// Define the GET /my-orders endpoint
 	router.GET("/my-orders", controllers.GetOrdersByUser)
