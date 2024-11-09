@@ -5,12 +5,11 @@ import (
 	"Package_Tracking_Backend/models"
 	"log"
 	"net/http"
-
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"golang.org/x/crypto/bcrypt" // ADDED: Import bcrypt for password hashing
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterUser handles user registration
@@ -28,13 +27,13 @@ func RegisterUser(c *gin.Context) {
 	log.Printf("Received user registration data: Name=%s, Email=%s, Phone=%s\n", user.Name, user.Email, user.Phone)
 
 	// Hash the password before storing it
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost) // ADDED: Hash password before storing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println("Error hashing password:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
-	user.Password = string(hashedPassword) // ADDED: Store hashed password
+	user.Password = string(hashedPassword)
 
 	// Insert user into the database
 	query := `INSERT INTO users (name, email, phone, password) 
@@ -42,20 +41,19 @@ func RegisterUser(c *gin.Context) {
 
 	var userID int64
 	err = db.DB.QueryRow(query, user.Name, user.Email, user.Phone, user.Password).Scan(&userID)
-
 	if err != nil {
 		log.Println("Error inserting user into database:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
 
-	// Return success response
+	// Return success response with user ID
 	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully", "user_id": userID})
 }
 
-var jwtSecretKey = []byte("UzN4041qFo+9TKhXaNeAqP/DJ8btfIGIT1rWsO6CyC8=") // Replace with a secure key
+var jwtSecretKey = []byte("UzN4041qFo+9TKhXaNeAqP/DJ8btfIGIT1rWsO6CyC8=") // Use an environment variable for security
 
-// LoginUser handles user login - ADDED: New function for handling user login
+// LoginUser handles user login
 func LoginUser(c *gin.Context) {
 	var loginData struct {
 		Email    string `json:"email" binding:"required"`
@@ -81,14 +79,11 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// Check if the password is correct
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginData.Password)); err != nil { // ADDED: Compare hashed password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginData.Password)); err != nil {
 		log.Println("Password mismatch:", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
-
-	// Return success response
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user_id": user.ID, "name": user.Name})
 
 	// Generate a JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -101,5 +96,14 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": tokenString, "user_id": user.ID})
+	// Return user data along with token
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"user": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+		},
+		"token": tokenString,
+	})
 }

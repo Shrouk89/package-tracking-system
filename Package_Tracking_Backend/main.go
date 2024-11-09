@@ -4,35 +4,21 @@ import (
 	"fmt"
 	"net/http"
 
-	//"log"
-	//"net/http"
 	"Package_Tracking_Backend/controllers" // ADDED
 	"Package_Tracking_Backend/db"          // ADDED
 	"Package_Tracking_Backend/middleware"
 
 	"github.com/gin-gonic/gin"
-	//"Package_Tracking_Backend/controllers" //use gin instead of mux
 )
 
-// Commented: I think we can just use the already implemented function from the controllers package.
-
-// Function that will handle user registration
-//func RegisterUser(w http.ResponseWriter, r *http.Request) {
-// Here you can add logic to process the registration form data (name, email, etc.)
-
-// Responding with a success message
-//	w.WriteHeader(http.StatusCreated) // 201 Created
-//	fmt.Fprintf(w, "User registration successful!")
-//}
-
 func main() {
-	// Initialize database connection - ADDED
+	// Initialize database connection
 	db.InitDB() // Ensures database connection is established
 
 	// Initialize a new router
 	router := gin.Default()
 
-	// Enable CORS to allow our Angular frontend to communicate with this Go backend
+	// Enable CORS to allow the Angular frontend to communicate with the Go backend
 	router.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*") // Allow all origins
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -44,39 +30,39 @@ func main() {
 		c.Next()
 	})
 
-	// Define the POST /register endpoint
-	router.POST("/register", controllers.RegisterUser)
+	// Public routes (accessible without authentication)
+	public := router.Group("/")
+	{
+		// User routes
+		public.POST("/register", controllers.RegisterUser)
+		public.POST("/login", controllers.LoginUser)
 
-	// Define the POST /login endpoint
-	router.POST("/login", controllers.LoginUser)
+		// Admin routes
+		public.POST("/admin/register", controllers.RegisterAdmin)
+		public.POST("/admin/login", controllers.LoginAdmin)
+	}
 
-	// Protected routes
+	// Protected routes (authentication required)
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware()) // Apply AuthMiddleware to all routes in this group
-	protected.POST("/create-order", controllers.CreateOrder)
+	{
+		// Order routes
+		protected.POST("/create-order", controllers.CreateOrder)
+		protected.GET("/users/:userId/orders", controllers.GetOrdersByUser)
+		protected.GET("/order-details/:id", controllers.GetOrderDetails)
+		protected.PUT("/cancel-order/:id", controllers.CancelOrder)
 
-	// // Define the POST /create-order endpoint
-	router.POST("/create-order", controllers.CreateOrder)
+		// Courier routes
+		protected.POST("/couriers", controllers.AddCourier)
+		protected.GET("/couriers", controllers.GetAllCouriers)
+		protected.GET("/assigned-orders", controllers.GetAssignedOrdersByCourier)
+		protected.PUT("/orders/update-status/:id", controllers.UpdateOrderStatus)
 
-	// Define the GET /my-orders endpoint
-	router.GET("/my-orders", controllers.GetOrdersByUser)
-
-	// Define the GET /order-details by ID endpoint
-	router.GET("/order-details/:id", controllers.GetOrderDetails)
-
-	router.PUT("/cancel-order/:id", controllers.CancelOrder)
-	// Register the courier routes
-	router.POST("/couriers", controllers.AddCourier)
-	router.GET("/couriers", controllers.GetAllCouriers)
-	router.GET("/assigned-orders", controllers.GetAssignedOrdersByCourier)
-	router.PUT("/orders/update-status/:id", controllers.UpdateOrderStatus)
-	router.POST("/admin/register", controllers.RegisterAdmin)
-
-	// Define the POST /login endpoint
-	router.POST("/admin/login", controllers.LoginAdmin)
-	router.GET("/orders", controllers.GetAllOrders)
-	router.PUT("/orders/:id", controllers.UpdateOrder)
-	router.DELETE("/orders/:id", controllers.DeleteOrder)
+		// Admin order management
+		protected.GET("/orders", controllers.GetAllOrders)
+		protected.PUT("/orders/:id", controllers.UpdateOrder)
+		protected.DELETE("/orders/:id", controllers.DeleteOrder)
+	}
 
 	// Start the server on port 8080
 	fmt.Println("Server is running at http://localhost:8080")

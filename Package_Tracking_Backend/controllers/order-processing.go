@@ -13,7 +13,7 @@ import (
 func CreateOrder(c *gin.Context) {
 	var order models.Order
 
-	// Retrieve user_id from the context (assuming it's set by an authentication middleware)
+	// Retrieve user_id from the context (set by authentication middleware)
 	userID, exists := c.Get("user_id")
 	if !exists {
 		log.Println("User ID not found in context")
@@ -28,10 +28,10 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Assign the retrieved userID to the order
+	// Assign the authenticated userID to the order
 	order.UserID = userID.(int64)
 
-	// Insert order into the database
+	// Insert the new order into the database
 	query := `INSERT INTO orders (user_id, pickup_location, dropoff_location, package_details, delivery_time, status)
               VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`
 
@@ -43,23 +43,25 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Return success response
+	// Return success response with order ID
 	c.JSON(http.StatusOK, gin.H{"message": "Order created successfully", "order_id": orderID})
 }
 
-// GetOrdersByUser handles retrieving all orders for a user
+// GetOrdersByUser handles retrieving all orders for an authenticated user
 func GetOrdersByUser(c *gin.Context) {
-	userID := c.Query("user_id") // Get user ID from query parameters
-
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+	// Retrieve user_id from the context (set by authentication middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		log.Println("User ID not found in context")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
+	// Fetch orders from the database for the authenticated user
 	var orders []models.Order
 	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
               FROM orders WHERE user_id = $1`
-	err := db.DB.Select(&orders, query, userID)
+	err := db.DB.Select(&orders, query, userID.(int64))
 
 	if err != nil {
 		log.Println("Error fetching orders:", err)
@@ -67,13 +69,15 @@ func GetOrdersByUser(c *gin.Context) {
 		return
 	}
 
+	// Return the retrieved orders
 	c.JSON(http.StatusOK, orders)
 }
 
-// GetOrderDetails handles retrieving details of a specific order by ID
+// GetOrderDetails handles retrieving the details of a specific order by its ID
 func GetOrderDetails(c *gin.Context) {
-	orderID := c.Param("id") // Get order ID
+	orderID := c.Param("id") // Get order ID from URL parameters
 
+	// Fetch the specific order details from the database
 	var order models.Order
 	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
               FROM orders WHERE id = $1`
@@ -85,14 +89,15 @@ func GetOrderDetails(c *gin.Context) {
 		return
 	}
 
+	// Return the order details
 	c.JSON(http.StatusOK, order)
 }
 
-// Handles order cancellation
+// CancelOrder handles the cancellation of a pending order
 func CancelOrder(c *gin.Context) {
-	orderID := c.Param("id")
+	orderID := c.Param("id") // Get order ID from URL parameters
 
-	// Check if the order is pending
+	// Check if the order is pending before allowing cancellation
 	var status string
 	queryCheck := `SELECT status FROM orders WHERE id = $1`
 	err := db.DB.Get(&status, queryCheck, orderID)
@@ -116,5 +121,6 @@ func CancelOrder(c *gin.Context) {
 		return
 	}
 
+	// Return success response after cancellation
 	c.JSON(http.StatusOK, gin.H{"message": "Order cancelled successfully"})
 }
