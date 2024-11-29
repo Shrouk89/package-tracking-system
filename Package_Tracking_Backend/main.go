@@ -48,7 +48,7 @@ func main() {
 	{
 		// Order routes
 		protected.POST("/create-order", controllers.CreateOrder)
-		protected.GET("/users/:userId/orders", controllers.GetOrdersByUser)
+		protected.GET("/my-orders", controllers.GetOrdersByUser)
 		protected.GET("/order-details/:id", controllers.GetOrderDetails)
 		protected.PUT("/cancel-order/:id", controllers.CancelOrder)
 
