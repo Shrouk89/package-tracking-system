@@ -55,19 +55,24 @@ func GetAllCouriers(c *gin.Context) {
 	c.JSON(http.StatusOK, couriers)
 }
 
-func GetAssignedOrdersByCourier(c *gin.Context) {
-	courierID := c.Query("courier_id") // Get courier ID from query parameters
+// src/controllers/order.go
 
-	if courierID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Courier ID is required"})
+func GetAssignedOrdersByCourier(c *gin.Context) {
+	userIDInterface, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userID, ok := userIDInterface.(int64)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
 	var orders []models.Order
 	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
-              FROM orders WHERE courier_id = $1` // Query to get orders by courier ID
-	err := db.DB.Select(&orders, query, courierID)
-
+              FROM orders WHERE courier_id = $1`
+	err := db.DB.Select(&orders, query, userID)
 	if err != nil {
 		log.Println("Error fetching assigned orders:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assigned orders"})
@@ -78,10 +83,11 @@ func GetAssignedOrdersByCourier(c *gin.Context) {
 }
 
 // UpdateOrderStatus handles updating the status of an order
+
 func UpdateOrderStatus(c *gin.Context) {
-	orderID := c.Param("id") // Get the order ID from the URL parameters
+	orderID := c.Param("id")
 	var requestBody struct {
-		Status string `json:"status" binding:"required"` // Require a new status in the request body
+		Status string `json:"status" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
@@ -89,13 +95,34 @@ func UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
-	// Prepare the query to update the order status
-	query := `UPDATE orders SET status = $1 WHERE id = $2`
-	_, err := db.DB.Exec(query, requestBody.Status, orderID)
+	validStatuses := map[string]bool{
+		"Picked Up":  true,
+		"In Transit": true,
+		"Delivered":  true,
+	}
+	if !validStatuses[requestBody.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status value"})
+		return
+	}
 
+	// Update the order status
+	query := `UPDATE orders SET status = $1 WHERE id = $2`
+	result, err := db.DB.Exec(query, requestBody.Status, orderID)
 	if err != nil {
 		log.Println("Error updating order status:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("Error fetching rows affected:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
 		return
 	}
 

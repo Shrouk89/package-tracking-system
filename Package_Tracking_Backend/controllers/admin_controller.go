@@ -12,7 +12,15 @@ import (
 
 // RegisterAdmin handles the registration of a new admin user
 func RegisterAdmin(c *gin.Context) {
-	var admin models.Admin
+
+	// Verify if the requester has a super admin role
+	requesterRole, exists := c.Get("role")
+	if !exists || requesterRole != "super_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+		return
+	}
+
+	var admin models.User
 
 	// Parse the JSON input into the Admin struct
 	if err := c.ShouldBindJSON(&admin); err != nil {
@@ -24,6 +32,7 @@ func RegisterAdmin(c *gin.Context) {
 	// Log the admin details without the password for security reasons
 	log.Printf("Received admin registration data: Name=%s, Email=%s\n", admin.Name, admin.Email)
 
+	admin.Role = "admin"
 	// Hash the admin's password for secure storage
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -34,12 +43,12 @@ func RegisterAdmin(c *gin.Context) {
 	admin.Password = string(hashedPassword)
 
 	// Prepare the SQL query to insert the new admin into the database
-	query := `INSERT INTO admins (name, email, password) 
-              VALUES ($1, $2, $3) RETURNING id`
+	query := `INSERT INTO users (name, email, password, role) 
+              VALUES ($1, $2, $3, $4) RETURNING id`
 
 	// Execute the query and get the new admin's ID
 	var adminID int64
-	err = db.DB.QueryRow(query, admin.Name, admin.Email, admin.Password).Scan(&adminID)
+	err = db.DB.QueryRow(query, admin.Name, admin.Email, admin.Password, admin.Role).Scan(&adminID)
 	if err != nil {
 		log.Println("Error inserting admin into database:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register admin"})
@@ -49,6 +58,7 @@ func RegisterAdmin(c *gin.Context) {
 	// Respond with a success message and the admin's ID
 	c.JSON(http.StatusOK, gin.H{"message": "Admin registered successfully", "admin_id": adminID})
 }
+
 func LoginAdmin(c *gin.Context) {
 	var loginData struct {
 		Email    string `json:"email" binding:"required"`
