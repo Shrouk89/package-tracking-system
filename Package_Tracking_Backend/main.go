@@ -108,8 +108,8 @@ func main() {
 		// Courier routes
 		//protected.POST("/couriers", controllers.AddCourier)
 		//protected.GET("/couriers", controllers.GetAllCouriers)
-		protected.GET("/assigned-orders", controllers.GetAssignedOrdersByCourier)
-		protected.PUT("/orders/update-status/:id", controllers.UpdateOrderStatus)
+		protected.GET("/courier/assigned-orders", controllers.GetAssignedOrdersByCourier)
+		protected.PUT("/courier/update-order-status/:id", controllers.UpdateOrderStatus)
 
 		// Admin order management
 		protected.GET("/orders", controllers.GetAllOrders)
