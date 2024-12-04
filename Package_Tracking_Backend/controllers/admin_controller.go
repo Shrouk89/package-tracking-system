@@ -152,3 +152,42 @@ func DeleteOrder(c *gin.Context) {
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{"message": "Order deleted successfully"})
 }
+
+// AssignOrderToCourier assigns an order to a courier
+func AssignOrderToCourier(c *gin.Context) {
+	var requestBody struct {
+		OrderID   int64 `json:"order_id" binding:"required"`
+		CourierID int64 `json:"courier_id" binding:"required"`
+	}
+
+	// Bind the JSON payload to the struct
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		log.Println("Invalid input:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	// Update the database to assign the courier to the order
+	query := `UPDATE orders SET courier_id = $1 WHERE id = $2`
+	_, err := db.DB.Exec(query, requestBody.CourierID, requestBody.OrderID)
+	if err != nil {
+		log.Println("Error assigning order to courier:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign order"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Order assigned successfully"})
+}
+
+func GetCurrentCouriers(c *gin.Context) {
+	var couriers []models.User
+	query := `SELECT id, name, email FROM users`
+	err := db.DB.Select(&couriers, query)
+	if err != nil {
+		log.Println("Error fetching couriers:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch couriers"})
+		return
+	}
+
+	c.JSON(http.StatusOK, couriers)
+}

@@ -116,6 +116,9 @@ func main() {
 		protected.GET("/admin/list-orders", controllers.GetAllOrders)
 		protected.PUT("/admin/orders/update-status/:id", controllers.UpdateOrder)
 		protected.DELETE("admin/delete-order/:id", controllers.DeleteOrder)
+		protected.PUT("/admin/assign-order", controllers.AssignOrderToCourier)
+		protected.GET("/admin/list-couriers", controllers.GetCurrentCouriers)
+
 	}
 
 	// Start the server on port 8080
