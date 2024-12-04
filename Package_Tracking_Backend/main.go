@@ -111,6 +111,9 @@ func main() {
 		//protected.GET("/couriers", controllers.GetAllCouriers)
 		protected.GET("/courier/assigned-orders", controllers.GetAssignedOrdersByCourier)
 		protected.PUT("/courier/update-order-status/:id", controllers.UpdateOrderStatus)
+		protected.PUT("/courier/accept-order/:id", controllers.AcceptOrder)
+		protected.PUT("/courier/decline-order/:id", controllers.DeclineOrder)
+		protected.GET("/courier/pending-orders", controllers.GetPendingOrders)
 
 		// Admin order management
 		protected.GET("/admin/list-orders", controllers.GetAllOrders)
