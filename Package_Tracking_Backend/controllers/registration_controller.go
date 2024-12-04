@@ -30,11 +30,11 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Default role to 'user' unless explicitly set to 'admin' (backend-controlled)
-	if user.Role == "admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You cannot self-register as an admin."})
-		return
-	}
+	// // Default role to 'user' unless explicitly set to 'admin' (backend-controlled)
+	// if user.Role == "admin" {
+	// 	c.JSON(http.StatusForbidden, gin.H{"error": "You cannot self-register as an admin."})
+	// 	return
+	// }
 
 	// Insert the new user into the database
 	query := `INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id`

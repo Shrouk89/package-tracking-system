@@ -99,8 +99,9 @@ func CancelOrder(c *gin.Context) {
 
 	// Check if the order is pending before allowing cancellation
 	var status string
+	var order models.Order
 	queryCheck := `SELECT status FROM orders WHERE id = $1`
-	err := db.DB.Get(&status, queryCheck, orderID)
+	err := db.DB.Get(&order, queryCheck, orderID)
 	if err != nil {
 		log.Println("Error checking order status:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check order status"})

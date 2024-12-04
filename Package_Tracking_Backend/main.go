@@ -95,6 +95,7 @@ func main() {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware()) // Apply AuthMiddleware to all routes in this group
 	{
+		protected.POST("/create-admin", controllers.RegisterAdmin)
 
 		//protected.POST("/register", controllers.Register)
 		protected.PUT("/approve-admin/:id", middleware.RoleMiddleware("super_admin"), controllers.ApproveAdmin)
@@ -112,9 +113,9 @@ func main() {
 		protected.PUT("/courier/update-order-status/:id", controllers.UpdateOrderStatus)
 
 		// Admin order management
-		protected.GET("/orders", controllers.GetAllOrders)
-		protected.PUT("/orders/:id", controllers.UpdateOrder)
-		protected.DELETE("/orders/:id", controllers.DeleteOrder)
+		protected.GET("/admin/list-orders", controllers.GetAllOrders)
+		protected.PUT("/admin/orders/update-status/:id", controllers.UpdateOrder)
+		protected.DELETE("admin/delete-order/:id", controllers.DeleteOrder)
 	}
 
 	// Start the server on port 8080

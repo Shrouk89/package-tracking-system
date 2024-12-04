@@ -14,11 +14,11 @@ import (
 func RegisterAdmin(c *gin.Context) {
 
 	// Verify if the requester has a super admin role
-	requesterRole, exists := c.Get("role")
-	if !exists || requesterRole != "super_admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-		return
-	}
+	// requesterRole, exists := c.Get("role")
+	// if !exists || requesterRole != "super_admin" {
+	// 	c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+	// 	return
+	// }
 
 	var admin models.User
 
