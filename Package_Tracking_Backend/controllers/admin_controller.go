@@ -96,8 +96,10 @@ func LoginAdmin(c *gin.Context) {
 // GetAllOrders handles retrieving all orders for admin
 func GetAllOrders(c *gin.Context) {
 	var orders []models.Order
-	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
-              FROM orders`
+	query := `
+		SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status, courier_id
+		FROM orders
+		WHERE courier_id IS NOT NULL` // Ensures that only orders with a non-null courier_id are selected
 
 	// Fetch all orders from the database
 	err := db.DB.Select(&orders, query)
@@ -155,21 +157,24 @@ func DeleteOrder(c *gin.Context) {
 
 // AssignOrderToCourier assigns an order to a courier
 func AssignOrderToCourier(c *gin.Context) {
-	var requestBody struct {
-		OrderID   int64 `json:"order_id" binding:"required"`
-		CourierID int64 `json:"courier_id" binding:"required"`
-	}
 
-	// Bind the JSON payload to the struct
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		log.Println("Invalid input:", err)
+	var order models.Order
+
+	// Bind the JSON request to the Order model
+	if err := c.ShouldBindJSON(&order); err != nil {
+		log.Println("Error binding JSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
+	orderID := c.Param("id")
+
+	// Log to check the CourierID value
+	log.Println("Assigned CourierID:", order.CourierID)
+
 	// Update the database to assign the courier to the order
-	query := `UPDATE orders SET courier_id = $1 WHERE id = $2`
-	_, err := db.DB.Exec(query, requestBody.CourierID, requestBody.OrderID)
+	query := `UPDATE orders SET courier_id = $1, status = 'in progress' WHERE id = $2`
+	_, err := db.DB.Exec(query, order.CourierID, orderID)
 	if err != nil {
 		log.Println("Error assigning order to courier:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign order"})
@@ -181,7 +186,7 @@ func AssignOrderToCourier(c *gin.Context) {
 
 func GetCurrentCouriers(c *gin.Context) {
 	var couriers []models.User
-	query := `SELECT id, name, email FROM users`
+	query := `SELECT id, name, email FROM users WHERE role = 'courier'`
 	err := db.DB.Select(&couriers, query)
 	if err != nil {
 		log.Println("Error fetching couriers:", err)

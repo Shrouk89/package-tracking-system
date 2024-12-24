@@ -62,7 +62,7 @@ func main() {
 	// Initialize database connection
 	db.InitDB() // Ensures database connection is established
 
-	createSuperAdmin()
+	//createSuperAdmin()
 
 	// Initialize a new router
 	router := gin.Default()
@@ -119,7 +119,7 @@ func main() {
 		protected.GET("/admin/list-orders", controllers.GetAllOrders)
 		protected.PUT("/admin/orders/update-status/:id", controllers.UpdateOrder)
 		protected.DELETE("admin/delete-order/:id", controllers.DeleteOrder)
-		protected.PUT("/admin/assign-order", controllers.AssignOrderToCourier)
+		protected.PUT("/admin/assign-order-to-courier/:id", controllers.AssignOrderToCourier)
 		protected.GET("/admin/list-couriers", controllers.GetCurrentCouriers)
 
 	}

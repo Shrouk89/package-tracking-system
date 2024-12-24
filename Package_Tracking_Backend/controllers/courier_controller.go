@@ -38,7 +38,7 @@ func AcceptOrder(c *gin.Context) {
 		return
 	}
 
-	if acceptedCount >= 2 {
+	if acceptedCount >= 3 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "You can only accept up to 2 orders at a time"})
 		return
 	}
@@ -150,27 +150,19 @@ func GetAllCouriers(c *gin.Context) {
 
 func GetAssignedOrdersByCourier(c *gin.Context) {
 	// Retrieve user_id from the context
-	userIDInterface, exists := c.Get("user_id")
+	// Retrieve user_id from the context (set by authentication middleware)
+	userID, exists := c.Get("user_id")
 	if !exists {
 		log.Println("User ID not found in context")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
-
-	userID, ok := userIDInterface.(int64)
-	if !ok {
-		log.Println("Failed to assert user ID type:", userIDInterface)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	log.Printf("Fetching assigned orders for courier ID: %d\n", userID)
 
 	// Query the database
 	var orders []models.Order
 	query := `SELECT id, user_id, pickup_location, dropoff_location, package_details, delivery_time, status 
               FROM orders WHERE courier_id = $1`
-	err := db.DB.Select(&orders, query, userID)
+	err := db.DB.Select(&orders, query, userID.(int64))
 	if err != nil {
 		log.Println("Error fetching assigned orders:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assigned orders"})
@@ -182,64 +174,3 @@ func GetAssignedOrdersByCourier(c *gin.Context) {
 	// Return the orders
 	c.JSON(http.StatusOK, orders)
 }
-
-// UpdateOrderStatus handles updating the status of an order
-
-// func UpdateOrderStatus(c *gin.Context) {
-// 	courierID, exists := c.Get("user_id")
-// 	if !exists {
-// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Courier not authenticated"})
-// 		return
-// 	}
-
-// 	orderID := c.Param("id")
-// 	var requestBody struct {
-// 		Status string `json:"status" binding:"required"`
-// 	}
-
-// 	if err := c.ShouldBindJSON(&requestBody); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-// 		return
-// 	}
-
-// 	validStatuses := map[string]bool{
-// 		"Picked Up":  true,
-// 		"In Transit": true,
-// 		"Delivered":  true,
-// 	}
-// 	if !validStatuses[requestBody.Status] {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status value"})
-// 		return
-// 	}
-
-// 	// Ensure the order belongs to the authenticated courier
-// 	queryCheck := `SELECT id FROM orders WHERE id = $1 AND courier_id = $2`
-// 	var id int64
-// 	err := db.DB.Get(&id, queryCheck, orderID, courierID.(int64))
-// 	if err != nil {
-// 		c.JSON(http.StatusForbidden, gin.H{"error": "Order not assigned to this courier"})
-// 		return
-// 	}
-
-// 	// Update order status
-// 	queryUpdate := `UPDATE orders SET status = $1 WHERE id = $2`
-// 	_, err = db.DB.Exec(queryUpdate, requestBody.Status, orderID)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
-// 		return
-// 	}
-
-// 	// rowsAffected, err := result.RowsAffected()
-// 	// if err != nil {
-// 	// 	log.Println("Error fetching rows affected:", err)
-// 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order status"})
-// 	// 	return
-// 	// }
-
-// 	// if rowsAffected == 0 {
-// 	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
-// 	// 	return
-// 	// }
-
-// 	c.JSON(http.StatusOK, gin.H{"message": "Order status updated successfully"})
-// }
